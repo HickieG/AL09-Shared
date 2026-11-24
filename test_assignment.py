@@ -38,7 +38,6 @@ def test_stage_1_boundaries():
     assert jaccard([], []) == 0
 
     # tags_for handles a resource with missing tags or tags=None as an empty set.
-    # Use that supplied helper before comparing those cases with PROFILE.
     missing_tags = tags_for({})
     none_tags = tags_for({"tags": None})
     assert shared_count(missing_tags, PROFILE) == 0

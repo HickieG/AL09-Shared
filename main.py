@@ -68,7 +68,7 @@ def ranking_key(result):
     """Provide descending-score and ascending-ID ordering for an exact tie."""
     # Return a two-part sorting key: negative score first, then the resource ID.
     # This lets ordinary ascending sorting place larger scores first.
-    raise NotImplementedError("Complete the named ranking key.")
+    return -result["score"], result["id"]
 
 
 def rank_resources(resources, profile, weights, k):
@@ -76,13 +76,32 @@ def rank_resources(resources, profile, weights, k):
     require_limit(k)
     validate_weights(weights)
     # Begin a new result list and consider every supplied resource.
-    # Use tags_for(resource) to apply the supplied missing/None-tag policy.
-    # Ask weighted_similarity for the score, contributions and union weight.
-    # Build a new result dictionary with id, title, url, score, matched,
-    # contributions and union_weight; matched is a sorted list of matching tags.
+    results = []
+    profile_tags = set(profile)
+    for resource in resources:
+        # Use tags_for(resource) to apply the supplied missing/None-tag policy.
+        tags = tags_for(resource)
+        # Ask weighted_similarity for the score, contributions and union weight.
+        score, contributions, union_weight = weighted_similarity(tags, profile_tags, weights)
+        matched = tags & profile_tags
+        union = tags | profile_tags
+        # Build a new result dictionary with id, title, url, score, matched,
+        # contributions and union_weight; matched is a sorted list of matching tags.
+        results.append({
+            "id": resource["id"],
+            "title": resource["title"],
+            "url": resource["url"],
+            "score": score,
+            "matched": sorted(matched),
+            "contributions": contributions,
+            "union_weight": union_weight,
+            "union": len(union),
+        })
+
     # Sort the complete list using ranking_key, then take at most k entries.
     # Preserve all source records, their tags, the profile and weights.
-    raise NotImplementedError("Complete ranking before applying the result limit.")
+    results.sort(key=ranking_key)
+    return results[:k]
 
 
 # STAGE 3 - MONDAY, NOVEMBER 30: Did the represented metadata change?
