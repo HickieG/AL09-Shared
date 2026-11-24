@@ -33,13 +33,35 @@ def weighted_similarity(tags, profile, weights):
     """Return score, matching-tag contributions and total union weight."""
     validate_weights(weights)
     # Use sets for resource tags and the profile, then identify overlap and union.
+    resource_tags = set(tags)
+    profile_tags = set(profile)
+    matched = resource_tags & profile_tags
+    union = resource_tags | profile_tags
+
     # Begin an empty contributions dictionary and a matched-weight total.
+    contributions = {}
+    matched_weight = 0
+
     # For each matching tag, record its weight and add it to the total.
     # Use a default weight of 1 when the tag is absent from weights.
+    for tag in matched:
+        weight = weights.get(tag, 1)
+        contributions[tag] = weight
+        matched_weight += weight
+
     # Separately total the weights of every distinct union tag.
+    union_weight = 0
+    for tag in union:
+        union_weight += weights.get(tag, 1)
+
     # A zero union-weight total gives score zero; otherwise divide the totals.
+    if union_weight == 0:
+        score = 0.0
+    else:
+        score = matched_weight / union_weight
+
     # Return the score, contributions dictionary and union-weight total together.
-    raise NotImplementedError("Complete weighted similarity and its explanation fields.")
+    return score, contributions, union_weight
 
 
 def ranking_key(result):
